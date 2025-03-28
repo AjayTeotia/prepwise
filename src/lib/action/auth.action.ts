@@ -88,3 +88,43 @@ export async function signIn(params: SignInParams) {
         };
     }
 }
+
+// Sign out user by clearing the session cookie
+export async function signOut() {
+    const cookieStore = await cookies();
+
+    cookieStore.delete("session")
+}
+
+// Get current user from session cookie
+export async function getCurrentUser(): Promise<User | null> {
+    const cookieStore = await cookies();
+
+    const sessionCookie = cookieStore.get("session")?.value;
+    if (!sessionCookie) return null;
+
+    try {
+        const decodedClaims = await auth.verifySessionCookie(sessionCookie, true);
+
+        // get user info from db
+        const userRecord = await db
+            .collection("users")
+            .doc(decodedClaims.uid)
+            .get();
+        if (!userRecord) return null;
+
+        return {
+            ...userRecord.data(),
+            id: userRecord.id,
+        } as User;
+    } catch (error) {
+        console.log("Error getting current user:", error);
+        return null;
+    }
+}
+
+// Check if user is authenticated
+export async function isAuthenticated() {
+    const user = await getCurrentUser();
+    return !!user;
+}
