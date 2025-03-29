@@ -2,8 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-import { useRouter } from "next/navigation"
-import { useState } from "react";
+// import { useRouter } from "next/navigation"
 
 enum CallStatus {
     INACTIVE = "INACTIVE",
@@ -12,10 +11,10 @@ enum CallStatus {
     FINISHED = "FINISHED",
 }
 
-interface SavedMessage {
-    role: "user" | "system" | "assistant";
-    content: string;
-}
+// interface SavedMessage {
+//     role: "user" | "system" | "assistant";
+//     content: string;
+// }
 
 const Agent = ({
     userName,
@@ -25,11 +24,13 @@ const Agent = ({
     type,
     questions
 }: AgentProps) => {
-    const router = useRouter();
+    // const router = useRouter();
 
-    const [callStatus, setCallStatus] = useState<CallStatus>(CallStatus.INACTIVE);
+    // const [callStatus, setCallStatus] = useState<CallStatus>(CallStatus.INACTIVE);
     // const [messages, setMessages] = useState<SavedMessage[]>([]);
     // const [lastMessage, setLastMessage] = useState<string>("");
+
+    const callStatus = CallStatus.ACTIVE
 
     const messages = [
         "What's your name?",
@@ -116,6 +117,14 @@ const Agent = ({
                 )}
             </div >
 
+
+            <div>
+                <p>{userId}</p>
+                <p>{interviewId}</p>
+                <p>{feedbackId}</p>
+                <p>{type}</p>
+                <p>{questions}</p>
+            </div>
         </>
     )
 }

@@ -98,6 +98,10 @@ const InterviewCard = async ({
                     </Button>
                 </div>
             </div>
+
+            <div>
+                <h1>{userId}</h1>
+            </div>
         </div>
     )
 }

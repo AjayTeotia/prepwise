@@ -12,7 +12,7 @@ export default async function Interview() {
             <Agent
                 userName={user?.name || ""}
                 userId={user?.id || ""}
-                profileImage={user?.profileURL || ""}
+                // profileImage={user?.profileURL || ""}
                 type="generate"
             />
         </>
