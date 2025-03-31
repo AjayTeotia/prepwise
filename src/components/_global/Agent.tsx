@@ -1,6 +1,7 @@
 "use client"
 
 import { interviewer } from "@/constants";
+import { createFeedback } from "@/lib/action/general.action";
 import { cn } from "@/lib/utils";
 import { vapi } from "@/lib/vapi.sdk";
 import Image from "next/image";
@@ -107,7 +108,7 @@ const Agent = ({
                 handleGenerateFeedback(messages)
             )
         }
-    }, [messages, callStatus, type, userId, router])
+    }, [messages, callStatus, feedbackId, interviewId, router, type, userId]);
 
     const handleCall = async () => {
         setCallStatus(CallStatus.CONNECTING);
