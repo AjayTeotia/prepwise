@@ -5,7 +5,7 @@ import { createFeedback } from "@/lib/action/general.action";
 import { cn } from "@/lib/utils";
 import { vapi } from "@/lib/vapi.sdk";
 import Image from "next/image";
-import { useRouter } from "next/navigation"
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 enum CallStatus {
@@ -26,7 +26,7 @@ const Agent = ({
     interviewId,
     feedbackId,
     type,
-    questions
+    questions,
 }: AgentProps) => {
     const router = useRouter();
 
@@ -35,16 +35,33 @@ const Agent = ({
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [lastMessage, setLastMessage] = useState<string>("");
 
+    // Check for microphone access
+    useEffect(() => {
+        const checkMicrophoneAccess = async () => {
+            try {
+                await navigator.mediaDevices.getUserMedia({ audio: true });
+                console.log("Microphone access granted");
+            } catch (error) {
+                console.error("Microphone access denied", error);
+            }
+        };
+
+        checkMicrophoneAccess();
+    }, []);
+
     useEffect(() => {
         const onCallStart = () => {
+            console.log("Call started");
             setCallStatus(CallStatus.ACTIVE);
         };
 
         const onCallEnd = () => {
+            console.log("Call ended");
             setCallStatus(CallStatus.FINISHED);
         };
 
         const onMessage = (message: Message) => {
+            console.log("Received message:", message);
             if (message.type === "transcript" && message.transcriptType === "final") {
                 const newMessage = { role: message.role, content: message.transcript };
                 setMessages((prev) => [...prev, newMessage]);
@@ -52,17 +69,18 @@ const Agent = ({
         };
 
         const onSpeechStart = () => {
-            console.log("speech start");
+            console.log("Speech started");
             setIsSpeaking(true);
         };
 
         const onSpeechEnd = () => {
-            console.log("speech end");
+            console.log("Speech ended");
             setIsSpeaking(false);
         };
 
         const onError = (error: Error) => {
-            console.log("Error:", error);
+            console.error("Error:", error);
+            setCallStatus(CallStatus.INACTIVE);
         };
 
         vapi.on("call-start", onCallStart);
@@ -88,7 +106,7 @@ const Agent = ({
         }
 
         const handleGenerateFeedback = async (messages: SavedMessage[]) => {
-            console.log("handleGenerateFeedback");
+            console.log("Generating feedback...");
 
             const { success, feedbackId: id } = await createFeedback({
                 interviewId: interviewId!,
@@ -117,26 +135,33 @@ const Agent = ({
     const handleCall = async () => {
         setCallStatus(CallStatus.CONNECTING);
 
-        if (type === "generate") {
-            await vapi.start(process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, {
-                variableValues: {
-                    username: userName,
-                    userid: userId,
-                },
-            });
-        } else {
-            let formattedQuestions = "";
-            if (questions) {
-                formattedQuestions = questions
-                    .map((question) => `- ${question}`)
-                    .join("\n");
-            }
+        try {
+            if (type === "generate") {
+                console.log("Starting generate workflow...");
+                await vapi.start(process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, {
+                    variableValues: {
+                        username: userName,
+                        userid: userId,
+                    },
+                });
+            } else {
+                let formattedQuestions = "";
+                if (questions) {
+                    formattedQuestions = questions
+                        .map((question) => `- ${question}`)
+                        .join("\n");
+                }
 
-            await vapi.start(interviewer, {
-                variableValues: {
-                    questions: formattedQuestions,
-                },
-            });
+                console.log("Starting interviewer workflow...");
+                await vapi.start(interviewer, {
+                    variableValues: {
+                        questions: formattedQuestions,
+                    },
+                });
+            }
+        } catch (error) {
+            console.error("Error starting VAPI call:", error);
+            setCallStatus(CallStatus.INACTIVE);
         }
     };
 
@@ -215,9 +240,9 @@ const Agent = ({
                         End
                     </button>
                 )}
-            </div >
+            </div>
         </>
-    )
-}
+    );
+};
 
-export default Agent
+export default Agent;
