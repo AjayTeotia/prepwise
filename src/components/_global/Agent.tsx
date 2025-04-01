@@ -1,12 +1,13 @@
-"use client"
+"use client";
 
-import { interviewer } from "@/constants";
-import { createFeedback } from "@/lib/action/general.action";
+import Image from "next/image";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
 import { cn } from "@/lib/utils";
 import { vapi } from "@/lib/vapi.sdk";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { interviewer } from "@/constants";
+import { createFeedback } from "@/lib/action/general.action";
 
 enum CallStatus {
     INACTIVE = "INACTIVE",
@@ -29,39 +30,21 @@ const Agent = ({
     questions,
 }: AgentProps) => {
     const router = useRouter();
-
     const [callStatus, setCallStatus] = useState<CallStatus>(CallStatus.INACTIVE);
     const [messages, setMessages] = useState<SavedMessage[]>([]);
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [lastMessage, setLastMessage] = useState<string>("");
 
-    // Check for microphone access
-    useEffect(() => {
-        const checkMicrophoneAccess = async () => {
-            try {
-                await navigator.mediaDevices.getUserMedia({ audio: true });
-                console.log("Microphone access granted");
-            } catch (error) {
-                console.error("Microphone access denied", error);
-            }
-        };
-
-        checkMicrophoneAccess();
-    }, []);
-
     useEffect(() => {
         const onCallStart = () => {
-            console.log("Call started");
             setCallStatus(CallStatus.ACTIVE);
         };
 
         const onCallEnd = () => {
-            console.log("Call ended");
             setCallStatus(CallStatus.FINISHED);
         };
 
         const onMessage = (message: Message) => {
-            console.log("Received message:", message);
             if (message.type === "transcript" && message.transcriptType === "final") {
                 const newMessage = { role: message.role, content: message.transcript };
                 setMessages((prev) => [...prev, newMessage]);
@@ -69,18 +52,17 @@ const Agent = ({
         };
 
         const onSpeechStart = () => {
-            console.log("Speech started");
+            console.log("speech start");
             setIsSpeaking(true);
         };
 
         const onSpeechEnd = () => {
-            console.log("Speech ended");
+            console.log("speech end");
             setIsSpeaking(false);
         };
 
         const onError = (error: Error) => {
-            console.error("Error:", error);
-            setCallStatus(CallStatus.INACTIVE);
+            console.log("Error:", error);
         };
 
         vapi.on("call-start", onCallStart);
@@ -106,7 +88,7 @@ const Agent = ({
         }
 
         const handleGenerateFeedback = async (messages: SavedMessage[]) => {
-            console.log("Generating feedback...");
+            console.log("handleGenerateFeedback");
 
             const { success, feedbackId: id } = await createFeedback({
                 interviewId: interviewId!,
